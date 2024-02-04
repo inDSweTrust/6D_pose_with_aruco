@@ -47,7 +47,7 @@ class Aruco():
     def create_aruco_board(self):
         # Create an ArUco board
         board_size = (3, 4)
-        board = cv2.aruco.GridBoard(board_size, 5.0, 1.0, self.dictionary)
+        board = cv2.aruco.GridBoard(board_size, 4.2, 0.8, self.dictionary)
         # Generate the board image
         board_image = board.generateImage((board_size[0]*250, board_size[1]*250), marginSize=10)
         # aruco_corners = np.array(board.getObjPoints())[:, :, :2]
@@ -62,38 +62,33 @@ class Aruco():
 
         return corners, ids
 
-    def estimate_pose_aruco(self, image, transform=None):
+    def estimate_pose_aruco(self, image, world_coord):
         # create the board
-        board = cv2.aruco.GridBoard((3, 4), 5.0, 1.0, self.dictionary)
+        board = cv2.aruco.GridBoard((3, 4), 4.2, 0.8, self.dictionary)
 
         rvec = None
         tvec = None
 
         # detect markers
         corners, ids = self.detect_aruco(image)
-        success, rvec, tvec = cv2.aruco.estimatePoseBoard(corners, ids, board, self.camera_matrix, self.distortion_coeffs, rvec, tvec)
+        success, w2c_rvec, w2c_tvec = cv2.aruco.estimatePoseBoard(corners, ids, board, self.camera_matrix, self.distortion_coeffs, rvec, tvec)
         
         # If need to get pose of an object, transform coords
         # Only the translation coords need to be transformed
 
-        print("ROTATION")
-        print(rvec)
-        print("TRANSLATION")
-        print(tvec)
+        rotation_matrix = np.zeros(shape=(3,3))
+        cv2.Rodrigues(w2c_rvec, rotation_matrix)
 
-        if transform:
-            print("TRANSFORM")
-            tvec[0][0] -= transform[0] # x-coord
-            tvec[1][0] -= transform[1] # y-coord
-            tvec[2][0] -= transform[2] # z-coord
+        # Project world-relative coordinates to camera coordinate space
+        world_tvec = np.matrix([[world_coord[0]],[world_coord[1]],[world_coord[2]]])
+        obj_tvec = rotation_matrix * world_tvec + w2c_tvec
 
-        print("ROTATION")
-        print(rvec)
-        print("TRANSLATION")
-        print(tvec)
+        # world coord system
+        image = cv2.drawFrameAxes(image, self.camera_matrix, self.distortion_coeffs, w2c_rvec, w2c_tvec, length=6, thickness=1)
 
         if success > 0:
-            image = cv2.drawFrameAxes(image, self.camera_matrix, self.distortion_coeffs, rvec, tvec, length=5, thickness=3)
+            # place of our world coordinates
+            image = cv2.drawFrameAxes(image, self.camera_matrix, self.distortion_coeffs, w2c_rvec, obj_tvec, length=3, thickness=2)
                 
         # save output image with markers
         cv2.imwrite("./output/test_pose.png", image)
@@ -142,10 +137,10 @@ if __name__ == "__main__":
     aruco = Aruco("DICT_6X6_250")
     # aruco.create_aruco_marker()
     # aruco.create_aruco_board()
-    image_path = "./data/images/rgb_694800.png"
+    image_path = "./data/images/rgb_781800.png"
     image = cv2.imread(image_path)
     corners, ids = aruco.detect_aruco(image)
     # aruco.visualize_aruco(image, corners, ids)
 
-    # aruco.estimate_pose_aruco(image)
-    aruco.estimate_pose_aruco(image, (16.0, 10.0, 0.0))
+    #aruco.estimate_pose_aruco(image, (0, 0, 0))
+    aruco.estimate_pose_aruco(image, (-10.0, 0, 0.0))
