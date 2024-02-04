@@ -1,4 +1,4 @@
-boards/
-data/
-markers/
-output/
+boards/*
+data/*
+markers/*
+output/*
