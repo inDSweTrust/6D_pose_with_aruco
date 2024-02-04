@@ -1,4 +1,1 @@
-boards/*
-data/*
-markers/*
-output/*
+data/rosbags/*
