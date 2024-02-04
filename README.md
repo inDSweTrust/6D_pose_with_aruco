@@ -1,0 +1,1 @@
+# 6D_pose_with_aruco
