@@ -46,7 +46,7 @@ class Aruco():
 
     def create_aruco_board(self):
         # Create an ArUco board
-        board_size = (3, 4)
+        board_size = (2, 2)
         board = cv2.aruco.GridBoard(board_size, 4.2, 0.8, self.dictionary)
         # Generate the board image
         board_image = board.generateImage((board_size[0]*250, board_size[1]*250), marginSize=10)
@@ -137,7 +137,8 @@ if __name__ == "__main__":
     aruco = Aruco("DICT_6X6_250")
     # aruco.create_aruco_marker()
     # aruco.create_aruco_board()
-    image_path = "./data/images/rgb_781800.png"
+
+    image_path = "./data/images/rgb_11900.png"
     image = cv2.imread(image_path)
     corners, ids = aruco.detect_aruco(image)
     # aruco.visualize_aruco(image, corners, ids)
