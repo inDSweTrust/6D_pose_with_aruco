@@ -1,8 +1,8 @@
-board/
+boards/*
 data/*
 data_inference/*
 hmi2/
-markers/
+markers/*
 output/*
 extract_rosbags.ipynb
 sync_to_machinelearner.sh
